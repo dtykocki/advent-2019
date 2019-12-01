@@ -10,7 +10,7 @@ defmodule Advent2019.RocketFuel do
   ## Examples
 
     iex> Advent2019.RocketFuel.total_fuel_from_file()
-    3_361_299
+    5_039_071
 
   """
   @spec total_fuel_from_file() :: pos_integer()
@@ -18,7 +18,8 @@ defmodule Advent2019.RocketFuel do
     :advent_2019
     |> :code.priv_dir()
     |> Path.join("day_1_input.txt")
-    |> File.stream!([], :line)
+    |> File.read!()
+    |> String.split("\n", trim: true)
     |> total_fuel()
   end
 
@@ -28,23 +29,32 @@ defmodule Advent2019.RocketFuel do
 
   ## Examples
 
-    iex> Advent2019.RocketFuel.total_fuel(["12","14","1969","100756"])
-    34_241
+    iex> Advent2019.RocketFuel.total_fuel(["12", "14", "1969", "100756"])
+    51_316
 
   """
   @spec total_fuel(Enum.t()) :: pos_integer()
-  def total_fuel(input_stream) do
-    input_stream
-    |> Stream.map(&parse_line/1)
+  def total_fuel(input) do
+    input
+    |> Enum.map(&parse_line/1)
     |> Enum.reduce(0, &reducer/2)
   end
 
-  defp reducer(value, acc) do
-    acc + (div(value, 3) - 2)
+  defp reducer(item, acc) do
+    acc + calculate_fuel(item)
   end
 
-  defp parse_line(line) do
-    {integer, _} = Integer.parse(line)
-    integer
+  defp calculate_fuel(item) do
+    fuel = div(item, 3) - 2
+
+    if fuel <= 0 do
+      0
+    else
+      fuel + calculate_fuel(fuel)
+    end
+  end
+
+  defp parse_line(item) do
+    String.to_integer(item)
   end
 end
