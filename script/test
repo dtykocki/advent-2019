@@ -1,0 +1,8 @@
+#!/bin/bash
+
+set -euo pipefail
+
+mix format
+mix credo --strict
+mix dialyzer --format dialyxir
+mix test
