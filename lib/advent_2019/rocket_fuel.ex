@@ -10,7 +10,7 @@ defmodule Advent2019.RocketFuel do
   ## Examples
 
     iex> Advent2019.RocketFuel.total_fuel_from_file()
-    3_361_299 
+    3_361_299
 
   """
   @spec total_fuel_from_file() :: pos_integer()
@@ -22,6 +22,16 @@ defmodule Advent2019.RocketFuel do
     |> total_fuel()
   end
 
+  @doc """
+  Returns the sum of the fuel requirements for a given list
+  of strings.
+
+  ## Examples
+
+    iex> Advent2019.RocketFuel.total_fuel(["12","14","1969","100756"])
+    34_241
+
+  """
   @spec total_fuel(Enum.t()) :: pos_integer()
   def total_fuel(input_stream) do
     input_stream
