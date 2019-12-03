@@ -36,25 +36,28 @@ defmodule Advent2019.RocketFuel do
   @spec total_fuel(Enum.t()) :: pos_integer()
   def total_fuel(input) do
     input
-    |> Enum.map(&parse_line/1)
-    |> Enum.reduce(0, &reducer/2)
-  end
-
-  defp reducer(item, acc) do
-    acc + calculate_fuel(item)
+    |> Enum.map(fn item -> String.to_integer(item) end)
+    |> Enum.map(fn item -> calculate_fuel(item) end)
+    |> Enum.sum()
   end
 
   defp calculate_fuel(item) do
-    fuel = div(item, 3) - 2
-
-    if fuel <= 0 do
-      0
-    else
-      fuel + calculate_fuel(fuel)
-    end
+    item
+    |> fuel()
+    |> calculate_fuel(0)
   end
 
-  defp parse_line(item) do
-    String.to_integer(item)
+  defp calculate_fuel(item, acc) when item > 0 do
+    item
+    |> fuel()
+    |> calculate_fuel(acc + item)
+  end
+
+  defp calculate_fuel(_, acc) do
+    acc
+  end
+
+  defp fuel(item) do
+    div(item, 3) - 2
   end
 end
