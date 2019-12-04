@@ -6,89 +6,91 @@ defmodule Advent2019.Intcode do
   @doc """
   ## Examples
 
-  iex> Advent2019.Intcode.compute_from_file()
+  iex> Advent2019.Intcode.part_1()
   5_534_943
 
   """
-  @spec compute_from_file() :: pos_integer()
-  def compute_from_file do
-    "day_2_input"
-    |> Advent2019.input()
-    |> parse()
-    |> reset()
-    |> run()
-    |> hd()
-  end
-
-  def another_thing do
-    {noun, verb} =
-      "day_2_input"
-      |> Advent2019.input()
-      |> parse()
-      |> find_error_code(19690720)
-
-    100 * noun + verb
+  @spec part_1() :: pos_integer()
+  def part_1 do
+    parse()
+    |> Map.put(1, 12)
+    |> Map.put(2, 2)
+    |> run_program()
+    |> Map.get(0)
   end
 
   @doc """
   ## Examples
 
-  iex> Advent2019.Intcode.compute("2,4,4,5,99,0")
-  [2, 4, 4, 5, 99, 9801]
-
+  iex> Advent2019.Intcode.part_2()
+  7603
   """
-  @spec compute(String.t()) :: Enum.t()
-  def compute(program) do
-    program
-    |> parse()
-    |> run()
+  @spec part_2() :: pos_integer()
+  def part_2 do
+    sequence = for x <- 0..99, y <- 0..99, do: {x, y}
+
+    parse()
+    |> search(19_690_720, sequence)
+    |> determine_result()
   end
 
-  defp parse(program) do
-    program
+  defp search(map, value, [{noun, verb} | remaining]) do
+    new_map =
+      map
+      |> Map.put(1, noun)
+      |> Map.put(2, verb)
+
+    case run_program(new_map, 0) do
+      %{0 => ^value} -> {noun, verb}
+      _ -> search(map, value, remaining)
+    end
+  end
+
+  defp determine_result({noun, verb}) do
+    100 * noun + verb
+  end
+
+  defp parse do
+    "day_2_input"
+    |> Advent2019.input()
     |> String.trim()
     |> String.split(",")
     |> Enum.map(&String.to_integer/1)
+    |> Enum.with_index()
+    |> Enum.into(Map.new(), fn {k, v} -> {v, k} end)
   end
 
-  defp reset(program, noun \\ 12, verb \\ 2) do
-    program
-    |> List.replace_at(1, noun)
-    |> List.replace_at(2, verb)
-  end
-
-  defp find_error_code(program, error_code) do
-    for noun <- 0..99, verb <- 0..99 do {noun, verb} end
-    |> Enum.find(fn {noun, verb} ->
-      result =
-        program
-        |> reset(noun, verb)
-        |> run()
-        |> hd()
-
-      result == error_code
-    end)
-  end
-
-  defp run(program, instruction_pointer \\ 0) do
-    operation = Enum.at(program, 0 + instruction_pointer)
-    first_operand = Enum.at(program, 1 + instruction_pointer)
-    second_operand = Enum.at(program, 2 + instruction_pointer)
-    store_at = Enum.at(program, 3 + instruction_pointer)
-
-    case operation do
+  defp run_program(map, instruction_pointer \\ 0) do
+    case Map.get(map, instruction_pointer) do
       1 ->
-        result = Enum.at(program, first_operand) + Enum.at(program, second_operand)
-        new_program = List.replace_at(program, store_at, result)
-        run(new_program, 4 + instruction_pointer)
+        map
+        |> add(instruction_pointer)
+        |> run_program(instruction_pointer + 4)
 
       2 ->
-        result = Enum.at(program, first_operand) * Enum.at(program, second_operand)
-        new_program = List.replace_at(program, store_at, result)
-        run(new_program, 4 + instruction_pointer)
+        map
+        |> multiply(instruction_pointer)
+        |> run_program(instruction_pointer + 4)
 
       99 ->
-        program
+        map
     end
+  end
+
+  defp add(map, instruction_pointer) do
+    {operand_1, operand_2, store_at} = read(map, instruction_pointer)
+    Map.put(map, store_at, operand_1 + operand_2)
+  end
+
+  defp multiply(map, instruction_pointer) do
+    {operand_1, operand_2, store_at} = read(map, instruction_pointer)
+    Map.put(map, store_at, operand_1 * operand_2)
+  end
+
+  defp read(map, instruction_pointer) do
+    pointer_1 = Map.get(map, instruction_pointer + 1)
+    pointer_2 = Map.get(map, instruction_pointer + 2)
+    store_at = Map.get(map, instruction_pointer + 3)
+    {Map.get(map, pointer_1), Map.get(map, pointer_2), store_at}
   end
 end
