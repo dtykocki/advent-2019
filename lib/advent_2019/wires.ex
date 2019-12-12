@@ -70,14 +70,17 @@ defmodule Advent2019.Wires do
 
   defp steps(wire, intersections) do
     Enum.reduce(intersections, [], fn point, crosses ->
-      result = Enum.reduce_while(wire, 1, fn item, acc ->
-        case item == point do
-          true ->
-            {:halt, acc}
-          false ->
-            {:cont, acc + 1}
-        end
-      end)
+      result =
+        Enum.reduce_while(wire, 1, fn item, acc ->
+          case item == point do
+            true ->
+              {:halt, acc}
+
+            false ->
+              {:cont, acc + 1}
+          end
+        end)
+
       [result | crosses]
     end)
   end
@@ -90,6 +93,7 @@ defmodule Advent2019.Wires do
           {next_point, [next_point | set]}
         end)
       end)
+
     set |> Enum.reverse()
   end
 
